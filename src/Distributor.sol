@@ -283,6 +283,7 @@ contract Distributor {
             }
         }
         bytes32 root = getMerkleRoot();
+        console.log("root..", root);
         if (root == bytes32(0)) revert InvalidUninitializedRoot();
         return currentHash == root;
     }

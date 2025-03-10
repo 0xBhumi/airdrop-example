@@ -13,7 +13,7 @@ contract DeployAndTest is Script {
         address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266); // Campaign creator address
     address constant USER = address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8); // User who will claim rewards
     uint256 constant REWARD_AMOUNT = 1000 ether; // Total reward amount
-    uint256 constant CLAIM_AMOUNT = 1 ether; // Amount to claim
+    uint256 constant CLAIM_AMOUNT = 100 ether; // Amount to claim
 
     function run() external {
         uint256 op1Fork = vm.createSelectFork("http://127.0.0.1:9545");
@@ -99,7 +99,7 @@ contract DeployAndTest is Script {
 
         MerkleTree memory tree = MerkleTree({
             merkleRoot: 0x2101fe17014c844d94b4fd55b99f50a22429f1634b464533a17cbb4e2dd4a001,
-            ipfsHash: "ipfs hash"
+            ipfsHash: 0x516d4578616d706c654861736800000000000000000000000000000000000000
         });
 
         vm.startBroadcast(
@@ -134,6 +134,7 @@ contract DeployAndTest is Script {
         amounts[0] = CLAIM_AMOUNT;
 
         bytes32[][] memory proofs = new bytes32[][](1);
+        proofs[0] = new bytes32[](2); // Initialize the inner array with 2 elements
         proofs[0][
             0
         ] = 0x4f6ad21c875c44e7f1fe4585f38213bba570c3a0b8dae2a8a8ec347e115323b7;
