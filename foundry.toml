@@ -1,0 +1,16 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+via_ir = true
+optimizer = true
+
+remappings = [
+    "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
+    "@contracts-bedrock/=lib/optimism/packages/contracts-bedrock/",
+    "@solady/=lib/optimism/packages/contracts-bedrock/lib/solady/src/",
+    "@solady-v0.0.245/=lib/optimism/packages/contracts-bedrock/lib/solady-v0.0.245/src/",
+
+]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
