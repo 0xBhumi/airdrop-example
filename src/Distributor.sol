@@ -27,6 +27,15 @@ struct TransferMessage {
     address tokenAddress;
 }
 
+struct ClaimData {
+    address[] users;
+    address[] tokens;
+    uint256[] amounts;
+    bytes32[][] proofs;
+    address[] recipients;
+    uint256[] chainIds;
+}
+
 /// @title Distributor
 /// @notice Allows to claim rewards distributed to them
 contract Distributor {
@@ -134,19 +143,8 @@ contract Distributor {
 
     /// @notice Claims rewards for a given set of users
     /// @dev Unless another address has been approved for claiming, only an address can claim for itself
-    /// @param users Addresses for which claiming is taking place
-    /// @param tokens ERC20 token claimed
-    /// @param amounts Amount of tokens that will be sent to the corresponding users
-    /// @param proofs Array of hashes bridging from a leaf `(hash of user | token | amount)` to the Merkle root
-    function claim(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        address[] calldata recipients,
-        uint256[] calldata chainIds
-    ) external {
-        _claim(users, tokens, amounts, proofs, recipients, chainIds);
+    function claim(ClaimData calldata data) external {
+        _claim(data);
     }
 
     /// @notice Returns the Merkle root that is currently live for the contract
@@ -186,35 +184,28 @@ contract Distributor {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Internal version of `claimWithRecipient`
-    function _claim(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        address[] memory recipients,
-        uint256[] calldata chainIds
-    ) internal nonReentrant {
-        uint256 usersLength = users.length;
+    function _claim(ClaimData calldata data) internal nonReentrant {
+        uint256 usersLength = data.users.length;
         if (
             usersLength == 0 ||
-            usersLength != tokens.length ||
-            usersLength != amounts.length ||
-            usersLength != proofs.length ||
-            usersLength != recipients.length ||
-            usersLength != chainIds.length
+            usersLength != data.tokens.length ||
+            usersLength != data.amounts.length ||
+            usersLength != data.proofs.length ||
+            usersLength != data.recipients.length ||
+            usersLength != data.chainIds.length
         ) revert InvalidLengths();
 
         for (uint256 i; i < usersLength; ) {
-            address user = users[i];
-            address token = tokens[i];
-            uint256 amount = amounts[i];
-            uint256 chainId = chainIds[i];
+            address user = data.users[i];
+            address token = data.tokens[i];
+            uint256 amount = data.amounts[i];
+            uint256 chainId = data.chainIds[i];
 
             require(msg.sender == user, "Not user");
 
             // Verifying proof
             bytes32 leaf = keccak256(abi.encode(user, token, amount));
-            if (!_verifyProof(leaf, proofs[i])) revert InvalidProof();
+            if (!_verifyProof(leaf, data.proofs[i])) revert InvalidProof();
 
             // Closing reentrancy gate here
             uint256 toSend = amount - claimed[user][token].amount;
@@ -225,7 +216,7 @@ contract Distributor {
             );
             emit Claimed(user, token, toSend);
 
-            address recipient = recipients[i];
+            address recipient = data.recipients[i];
             // Only `msg.sender` can set a different recipient for itself within the context of a call to claim
             // The recipient set in the context of the call to `claim` can override the default recipient set by the user
             if (recipient == address(0)) {

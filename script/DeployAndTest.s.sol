@@ -148,14 +148,23 @@ contract DeployAndTest is Script {
         uint256[] memory chainIds = new uint256[](1);
         chainIds[0] = block.chainid; // Use the current chain ID
 
+        ClaimData memory claimData = ClaimData({
+            users: users,
+            tokens: tokens,
+            amounts: amounts,
+            proofs: proofs,
+            recipients: recipients,
+            chainIds: chainIds
+        });
+
         // // Claim the rewards
-        // vm.prank(USER);
+        vm.prank(USER);
 
         vm.startBroadcast(
             0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
         );
         console.log("hello");
-        distributor.claim(users, tokens, amounts, proofs, recipients, chainIds);
+        distributor.claim(claimData);
 
         vm.stopBroadcast();
         // // Validate that the claim was successful
