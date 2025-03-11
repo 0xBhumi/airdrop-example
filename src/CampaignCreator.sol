@@ -22,15 +22,6 @@ struct CampaignParameters {
     bytes campaignData;
 }
 
-/// @title DistributionCreator
-/// @author Angle Labs, Inc.
-/// @notice Manages the distribution of rewards through the Merkl system
-/// @dev This contract is mostly a helper for APIs built on top of Merkl
-/// @dev This contract distinguishes two types of different rewards:
-/// - distributions: type of campaign for concentrated liquidity pools created before Feb 15 2024,
-/// now deprecated
-/// - campaigns: the more global name to describe any reward program on top of Merkl
-//solhint-disable
 contract CampaignCreator is ReentrancyGuard {
     using SafeERC20 for IERC20;
 

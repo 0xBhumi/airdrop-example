@@ -28,8 +28,7 @@ struct TransferMessage {
 }
 
 /// @title Distributor
-/// @notice Allows to claim rewards distributed to them through Merkl
-/// @author Angle Labs. Inc
+/// @notice Allows to claim rewards distributed to them
 contract Distributor {
     using SafeERC20 for IERC20;
 
@@ -239,21 +238,7 @@ contract Distributor {
                 } else {
                     // Send the Token to the bridge for cross-chain transfer
                     SuperchainTokenBridge(Predeploys.SUPERCHAIN_TOKEN_BRIDGE)
-                        .sendERC20(token, address(this), toSend, chainId);
-
-                    // Create transfer message for recipients
-                    TransferMessage memory message = TransferMessage({
-                        recipient: recipient,
-                        amount: toSend,
-                        tokenAddress: token
-                    });
-
-                    // Send message to destination chain
-                    messenger.sendMessage(
-                        chainId,
-                        address(this),
-                        abi.encodeCall(this.claimReceivedTokens, (message))
-                    );
+                        .sendERC20(token, recipient, toSend, chainId);
                 }
             }
             unchecked {
@@ -283,18 +268,7 @@ contract Distributor {
             }
         }
         bytes32 root = getMerkleRoot();
-        console.log("root..", root);
         if (root == bytes32(0)) revert InvalidUninitializedRoot();
         return currentHash == root;
-    }
-
-    function claimReceivedTokens(
-        TransferMessage memory _message
-    ) external onlyCrossDomainCallback {
-        bool success = SuperchainERC20(_message.tokenAddress).transfer(
-            _message.recipient,
-            _message.amount
-        );
-        require(success, "Transfer failed");
     }
 }

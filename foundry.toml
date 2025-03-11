@@ -2,8 +2,9 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-via_ir = true
+# via_ir = true
 optimizer = true
+
 
 remappings = [
     "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
@@ -12,5 +13,9 @@ remappings = [
     "@solady-v0.0.245/=lib/optimism/packages/contracts-bedrock/lib/solady-v0.0.245/src/",
 
 ]
+
+
+[etherscan]
+optimism_sepolia = { key = "FBMND61RM2KYWDHWD42PRMTAX5UE2H153G" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

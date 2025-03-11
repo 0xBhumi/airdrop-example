@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@omni-kit/omni-deployer": "^0.2.3"
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "chains": [
+        420120000,
+        420120001
+    ],
+    "factoryContract": "0x5a0632d24ddae5B4CB511aBB134561b9396473b4",
+    "contractName": "TestToken",
+    "constructorArgs": [
+        "MyToken",
+        "MTK"
+    ],
+    "rpcUrl": "https://interop-alpha-0.optimism.io",
+    "salt": "mysalt"
+}

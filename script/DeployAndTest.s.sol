@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import "../src/CampaignCreator.sol";
 import "../src/Distributor.sol";
-import "../src/MockERC20.sol"; // Import the MockERC20 contract
+import "../src/MockERC20.sol";
 
 contract DeployAndTest is Script {
     // Define constants for testing
