@@ -1,66 +1,58 @@
-## Foundry
+This repository contains Solidity smart contracts for creating campaigns and distributing rewards. The system is designed to be deployed on multiple chains, enabling users to create campaigns, manage cross-chain rewards, and claim them using Merkle proofs.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
 
-Foundry consists of:
+This project consists of two main contracts:
+1. **CampaignCreator**: Allows users to create campaigns with specific parameters such as reward tokens, amounts, and durations.
+2. **Distributor**: Manages the distribution of rewards to users based on Merkle proofs.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The system is designed to be chain-agnostic, enabling deployment and interaction across multiple blockchain networks.
 
-## Documentation
+---
 
-https://book.getfoundry.sh/
+## Deployment
 
-## Usage
+### DeployCampaignCreator
 
-### Build
+Deploys the `CampaignCreator` contract.
 
-```shell
-$ forge build
+#### Usage
+```bash
+forge script script/DeployCampaignCreator.sol --rpc-url <RPC_URL> --broadcast --verify -vvvv
 ```
 
-### Test
+### DeployDistributor
 
-```shell
-$ forge test
+Deploys the Distributor contract on multiple chains.
+
+#### Usage
+```bash
+forge script script/DeployDistributor.sol --rpc-url <RPC_URL> --broadcast --verify -vvvv
 ```
 
-### Format
+## Scripts
 
-```shell
-$ forge fmt
+### CreateCampaignScript
+
+Creates a new campaign using the CampaignCreator contract.
+
+#### Usage
+```bash
+forge script script/CreateCampaignScript.sol --rpc-url <RPC_URL> --broadcast -vvvv
 ```
+### UpdateRootScript
 
-### Gas Snapshots
+Updates the Merkle root in the Distributor contract.
 
-```shell
-$ forge snapshot
+#### Usage
+```bash
+forge script script/UpdateRootScript.sol --rpc-url <RPC_URL> --broadcast -vvvv
 ```
+### ClaimScript
 
-### Anvil
+Allows users to claim rewards from the Distributor contract.
 
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+#### Usage
+```bash
+forge script script/ClaimScript.sol --rpc-url <RPC_URL> --broadcast -vvvv
 ```
