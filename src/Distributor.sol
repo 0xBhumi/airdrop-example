@@ -2,13 +2,12 @@
 
 pragma solidity ^0.8.17;
 
-import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {SafeCast} from "openzeppelin-contracts/utils/math/SafeCast.sol";
 import {IL2ToL2CrossDomainMessenger} from "@contracts-bedrock/interfaces/L2/IL2ToL2CrossDomainMessenger.sol";
 import {Predeploys} from "@contracts-bedrock/src/libraries/Predeploys.sol";
 import {SuperchainERC20} from "@contracts-bedrock/src/L2/SuperchainERC20.sol";
 import {SuperchainTokenBridge} from "@contracts-bedrock/src/L2/SuperchainTokenBridge.sol";
+import {console} from "forge-std/console.sol";
 
 struct MerkleTree {
     bytes32 merkleRoot;
@@ -39,8 +38,6 @@ struct ClaimData {
 /// @title Distributor
 /// @notice Allows to claim rewards distributed to them
 contract Distributor {
-    using SafeERC20 for IERC20;
-
     /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                        VARIABLES
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -175,7 +172,7 @@ contract Distributor {
         address to,
         uint256 amountToRecover
     ) external onlyOwner {
-        IERC20(tokenAddress).safeTransfer(to, amountToRecover);
+        SuperchainERC20(tokenAddress).transfer(to, amountToRecover);
         emit Recovered(tokenAddress, to, amountToRecover);
     }
 
@@ -204,7 +201,7 @@ contract Distributor {
             require(msg.sender == user, "Not user");
 
             // Verifying proof
-            bytes32 leaf = keccak256(abi.encode(user, token, amount));
+            bytes32 leaf = keccak256(abi.encodePacked(user, token, amount));
             if (!_verifyProof(leaf, data.proofs[i])) revert InvalidProof();
 
             // Closing reentrancy gate here
@@ -225,7 +222,14 @@ contract Distributor {
 
             if (toSend != 0) {
                 if (block.chainid == chainId) {
-                    IERC20(token).safeTransfer(recipient, toSend);
+                    console.log(
+                        "balance in ...",
+                        SuperchainERC20(token).balanceOf(address(this))
+                    );
+                    emit CheckBalance(
+                        SuperchainERC20(token).balanceOf(address(this))
+                    );
+                    SuperchainERC20(token).transfer(recipient, toSend);
                 } else {
                     // Send the Token to the bridge for cross-chain transfer
                     SuperchainTokenBridge(Predeploys.SUPERCHAIN_TOKEN_BRIDGE)
@@ -238,6 +242,12 @@ contract Distributor {
         }
     }
 
+    event DebugLeaf(bytes32 leaf);
+    event DebugProof(bytes32[] proof);
+    event DebugRoot(bytes32 root);
+    event DebugCurrentHash(bytes32);
+    event CheckBalance(uint256);
+
     /// @notice Checks the validity of a proof
     /// @param leaf Hashed leaf data, the starting point of the proof
     /// @param proof Array of hashes forming a hash chain from leaf to root
@@ -245,14 +255,22 @@ contract Distributor {
     function _verifyProof(
         bytes32 leaf,
         bytes32[] memory proof
-    ) internal view returns (bool) {
+    ) internal returns (bool) {
+        emit DebugLeaf(leaf);
+        emit DebugProof(proof);
+        emit DebugRoot(getMerkleRoot());
+
         bytes32 currentHash = leaf;
         uint256 proofLength = proof.length;
         for (uint256 i; i < proofLength; ) {
             if (currentHash < proof[i]) {
-                currentHash = keccak256(abi.encode(currentHash, proof[i]));
+                currentHash = keccak256(
+                    abi.encodePacked(currentHash, proof[i])
+                );
             } else {
-                currentHash = keccak256(abi.encode(proof[i], currentHash));
+                currentHash = keccak256(
+                    abi.encodePacked(proof[i], currentHash)
+                );
             }
             unchecked {
                 ++i;
@@ -260,6 +278,7 @@ contract Distributor {
         }
         bytes32 root = getMerkleRoot();
         if (root == bytes32(0)) revert InvalidUninitializedRoot();
+        emit DebugCurrentHash(currentHash);
         return currentHash == root;
     }
 }

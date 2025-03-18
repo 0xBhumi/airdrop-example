@@ -3,12 +3,11 @@
 pragma solidity ^0.8.17;
 
 import {ReentrancyGuard} from "openzeppelin-contracts/utils/ReentrancyGuard.sol";
-import {IERC20} from "openzeppelin-contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 import {ECDSA} from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
 import {SignatureChecker} from "openzeppelin-contracts/utils/cryptography/SignatureChecker.sol";
-
+import {SuperchainERC20} from "@contracts-bedrock/src/L2/SuperchainERC20.sol";
 import {Distributor} from "./Distributor.sol";
+import {console} from "forge-std/console.sol";
 
 struct CampaignParameters {
     bytes32 campaignId;
@@ -23,8 +22,6 @@ struct CampaignParameters {
 }
 
 contract CampaignCreator is ReentrancyGuard {
-    using SafeERC20 for IERC20;
-
     /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                  CONSTANTS / VARIABLES                                              
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -190,10 +187,14 @@ contract CampaignCreator is ReentrancyGuard {
 
         if (newCampaign.creator == address(0)) newCampaign.creator = msg.sender;
 
-        IERC20(newCampaign.rewardToken).safeTransferFrom(
+        SuperchainERC20(newCampaign.rewardToken).transferFrom(
             msg.sender,
             distributor,
             newCampaign.amount
+        );
+        console.log(
+            "check....",
+            SuperchainERC20(newCampaign.rewardToken).balanceOf(distributor)
         );
         newCampaign.campaignId = campaignId(newCampaign);
 

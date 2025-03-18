@@ -1,199 +1,245 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+// // SPDX-License-Identifier: MIT
+// pragma solidity ^0.8.17;
 
-import "forge-std/Script.sol";
-import {console} from "forge-std/console.sol";
-import "../src/CampaignCreator.sol";
-import "../src/Distributor.sol";
-import "../src/MockERC20.sol";
+// import "forge-std/Script.sol";
+// import {console} from "forge-std/console.sol";
+// import "../src/CampaignCreator.sol";
+// import "../src/Distributor.sol";
+// import "../src/MockERC20.sol";
 
-contract DeployAndTest is Script {
-    // Define constants for testing
-    address constant CREATOR =
-        address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266); // Campaign creator address
-    address constant USER = address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8); // User who will claim rewards
-    uint256 constant REWARD_AMOUNT = 1000 ether; // Total reward amount
-    uint256 constant CLAIM_AMOUNT = 100 ether; // Amount to claim
+// contract DeployAndTest is Script {
+//     // Define constants for testing
+//     address constant CREATOR =
+//         address(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266); // Campaign creator address
+//     address constant USER = address(0x70997970C51812dc3A010C7d01b50e0d17dc79C8); // User who will claim rewards
+//     // address constant WETH_ADDRESS =
+//     //     address(0x4200000000000000000000000000000000000024);
+//     // uint256 constant DEPOSIT_AMOUNT = 10000 ether;
+//     uint256 constant REWARD_AMOUNT = 1000 ether; // Total reward amount
+//     uint256 constant CLAIM_AMOUNT = 100 ether; // Amount to claim
 
-    function run() external {
-        uint256 op1Fork = vm.createSelectFork("http://127.0.0.1:9545");
-        uint256 op2Fork = vm.createSelectFork("http://127.0.0.1:9546");
+//     function run() external {
+//         uint256 op1Fork = vm.createSelectFork("http://127.0.0.1:9545");
+//         uint256 op2Fork = vm.createSelectFork("http://127.0.0.1:9546");
 
-        vm.selectFork(op1Fork);
-        // Start broadcasting transactions
-        vm.startBroadcast();
+//         vm.selectFork(op1Fork);
 
-        // Deploy a mock ERC20 token for testing
-        MockERC20 rewardToken = new MockERC20{salt: "mocktoken"}(
-            "RewardToken",
-            "RTK"
-        );
-        console.log("RewardToken", address(rewardToken));
+//         // vm.startBroadcast(
+//         //     0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+//         // );
 
-        // Deploy the Distributor contract
-        Distributor distributor = new Distributor{salt: "distributor"}(
-            0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
-        );
-        console.log("Distributor", address(distributor));
+//         // // // convert eth to weth
+//         // // SuperchainWETH(WETH_ADDRESS).deposit(DEPOSIT_AMOUNT);
+//         // // console.log(
+//         // //     "weth balance",
+//         // //     SuperchainWETH(WETH_ADDRESS).balanceOf(
+//         // //         0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+//         // //     )
+//         // // );
 
-        // Deploy the CampaignCreator contract with the Distributor address
-        CampaignCreator campaignCreator = new CampaignCreator(
-            0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
-            address(distributor)
-        );
-        console.log("CampaignCreator", address(campaignCreator));
+//         // vm.stopBroadcast();
 
-        // Fund the creator with reward tokens
-        rewardToken.mint(CREATOR, REWARD_AMOUNT);
-        vm.stopBroadcast();
-        // Create a new campaign
-        CampaignParameters memory newCampaign = CampaignParameters({
-            campaignId: bytes32(0), // This will be set by the contract
-            creator: CREATOR,
-            rewardToken: address(rewardToken),
-            amount: REWARD_AMOUNT,
-            campaignType: 1, // Example campaign type
-            startTimestamp: uint32(block.timestamp),
-            duration: 3600, // 1 hour
-            campaignData: bytes("example campaign data")
-        });
+//         // Start broadcasting transactions
+//         vm.startBroadcast();
 
-        // Approve the CampaignCreator to spend the reward tokens
-        // vm.prank(CREATOR);
-        vm.startBroadcast(
-            0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-        );
-        rewardToken.approve(address(campaignCreator), REWARD_AMOUNT);
+//         // Deploy a mock ERC20 token for testing
+//         MockERC20 rewardToken = new MockERC20{salt: "mocktoken"}(
+//             "RewardToken",
+//             "RTK"
+//         );
+//         console.log("RewardToken", address(rewardToken));
 
-        // Create the campaign and get the campaignId
-        bytes32 campaignId = campaignCreator.createCampaign(newCampaign);
+//         // Deploy the Distributor contract
+//         Distributor distributor = new Distributor{salt: "distributor"}(
+//             0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+//         );
+//         console.log("Distributor", address(distributor));
 
-        // Validate that the campaign was created properly
-        CampaignParameters memory createdCampaign = campaignCreator.campaign(
-            campaignId
-        );
+//         // Deploy the CampaignCreator contract with the Distributor address
+//         CampaignCreator campaignCreator = new CampaignCreator(
+//             0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
+//             address(distributor)
+//         );
+//         console.log("CampaignCreator", address(campaignCreator));
 
-        vm.stopBroadcast();
+//         // Fund the creator with reward tokens
+//         rewardToken.mint(CREATOR, REWARD_AMOUNT);
 
-        require(
-            rewardToken.balanceOf(address(distributor)) == REWARD_AMOUNT,
-            "Reward amount not deposited"
-        );
-        require(
-            createdCampaign.creator == CREATOR,
-            "Campaign creator mismatch"
-        );
-        require(
-            createdCampaign.rewardToken == address(rewardToken),
-            "Reward token mismatch"
-        );
-        require(
-            createdCampaign.amount == REWARD_AMOUNT,
-            "Reward amount mismatch"
-        );
-        require(createdCampaign.duration == 3600, "Campaign duration mismatch");
-        console.log(
-            "Campaign created successfully with ID:",
-            vm.toString(campaignId)
-        );
+//         console.log(
+//             "user balance after campaign created",
+//             rewardToken.balanceOf(address(CREATOR))
+//         );
 
-        MerkleTree memory tree = MerkleTree({
-            merkleRoot: 0x2101fe17014c844d94b4fd55b99f50a22429f1634b464533a17cbb4e2dd4a001,
-            ipfsHash: 0x516d4578616d706c654861736800000000000000000000000000000000000000
-        });
+//         vm.stopBroadcast();
+//         // Create a new campaign
+//         CampaignParameters memory newCampaign = CampaignParameters({
+//             campaignId: bytes32(0), // This will be set by the contract
+//             creator: CREATOR,
+//             rewardToken: address(rewardToken),
+//             amount: REWARD_AMOUNT,
+//             campaignType: 1, // Example campaign type
+//             startTimestamp: uint32(block.timestamp),
+//             duration: 3600, // 1 hour
+//             campaignData: bytes("example campaign data")
+//         });
 
-        vm.startBroadcast(
-            0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
-        );
+//         // Approve the CampaignCreator to spend the reward tokens
+//         vm.startBroadcast(
+//             0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+//         );
+//         rewardToken.approve(address(campaignCreator), REWARD_AMOUNT);
 
-        distributor.updateTree(tree);
+//         // Create the campaign and get the campaignId
+//         bytes32 campaignId = campaignCreator.createCampaign(newCampaign);
 
-        vm.stopBroadcast();
+//         // Validate that the campaign was created properly
+//         CampaignParameters memory createdCampaign = campaignCreator.campaign(
+//             campaignId
+//         );
 
-        require(
-            distributor.getMerkleRoot() ==
-                0x2101fe17014c844d94b4fd55b99f50a22429f1634b464533a17cbb4e2dd4a001,
-            "Merkle root mismatch"
-        );
+//         vm.stopBroadcast();
 
-        // Simulate a claim process
-        // Generate a mock Merkle proof (for testing purposes)
-        // bytes32[] memory proof = new bytes32[](1);
-        // proof[0] = keccak256(
-        //     abi.encode(USER, address(rewardToken), CLAIM_AMOUNT)
-        // );
+//         console.log(
+//             "user balance after campaign created",
+//             rewardToken.balanceOf(address(CREATOR))
+//         );
 
-        // Prepare claim parameters
-        address[] memory users = new address[](1);
-        users[0] = USER;
+//         require(
+//             rewardToken.balanceOf(address(distributor)) == REWARD_AMOUNT,
+//             "Reward amount not deposited"
+//         );
+//         require(
+//             createdCampaign.creator == CREATOR,
+//             "Campaign creator mismatch"
+//         );
+//         require(
+//             createdCampaign.rewardToken == address(rewardToken),
+//             "Reward token mismatch"
+//         );
+//         require(
+//             createdCampaign.amount == REWARD_AMOUNT,
+//             "Reward amount mismatch"
+//         );
+//         require(createdCampaign.duration == 3600, "Campaign duration mismatch");
+//         console.log(
+//             "Campaign created successfully with ID:",
+//             vm.toString(campaignId)
+//         );
 
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(rewardToken);
+//         MerkleTree memory tree = MerkleTree({
+//             merkleRoot: 0xa5c978ba505d2e1699553fb1b86380494dbe9f5152f962dd494179351d9480d2,
+//             ipfsHash: 0x516d4578616d706c654861736800000000000000000000000000000000000000
+//         });
 
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = CLAIM_AMOUNT;
+//         vm.startBroadcast(
+//             0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
+//         );
 
-        bytes32[][] memory proofs = new bytes32[][](1);
-        proofs[0] = new bytes32[](2); // Initialize the inner array with 2 elements
-        proofs[0][
-            0
-        ] = 0x4f6ad21c875c44e7f1fe4585f38213bba570c3a0b8dae2a8a8ec347e115323b7;
-        proofs[0][
-            1
-        ] = 0x92644ec59205c91cd12fe05a6d6bb2d45e89e0213c06eb3382918a7f45498ee9;
+//         distributor.updateTree(tree);
 
-        address[] memory recipients = new address[](1);
-        recipients[0] = USER;
+//         vm.stopBroadcast();
 
-        uint256[] memory chainIds = new uint256[](1);
-        chainIds[0] = block.chainid; // Use the current chain ID
+//         require(
+//             distributor.getMerkleRoot() ==
+//                 0xa5c978ba505d2e1699553fb1b86380494dbe9f5152f962dd494179351d9480d2,
+//             "Merkle root mismatch"
+//         );
 
-        ClaimData memory claimData = ClaimData({
-            users: users,
-            tokens: tokens,
-            amounts: amounts,
-            proofs: proofs,
-            recipients: recipients,
-            chainIds: chainIds
-        });
+//         // Simulate a claim process
+//         // Generate a mock Merkle proof (for testing purposes)
+//         // bytes32[] memory proof = new bytes32[](1);
+//         // proof[0] = keccak256(
+//         //     abi.encode(USER, address(rewardToken), CLAIM_AMOUNT)
+//         // );
 
-        // // Claim the rewards
-        vm.prank(USER);
+//         // Prepare claim parameters
+//         address[] memory users = new address[](1);
+//         users[0] = USER;
 
-        vm.startBroadcast(
-            0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
-        );
-        console.log("hello");
-        distributor.claim(claimData);
+//         address[] memory tokens = new address[](1);
+//         tokens[0] = address(rewardToken);
 
-        vm.stopBroadcast();
-        // // Validate that the claim was successful
-        // uint256 userBalance = rewardToken.balanceOf(USER);
-        // require(
-        //     userBalance == CLAIM_AMOUNT,
-        //     "Claim failed: Incorrect user balance"
-        // );
-        // console.log("User successfully claimed:", CLAIM_AMOUNT, "tokens");
+//         uint256[] memory amounts = new uint256[](1);
+//         amounts[0] = CLAIM_AMOUNT;
 
-        // Stop broadcasting transactions
+//         bytes32[][] memory proofs = new bytes32[][](1);
+//         proofs[0] = new bytes32[](2); // Initialize the inner array with 2 elements
+//         proofs[0][
+//             0
+//         ] = 0x640b9d8fd6aa01dababa3ad64f0b999a20427de7991653763cabbb1249eae0b4;
+//         proofs[0][
+//             1
+//         ] = 0x999130c3e489ed065424901ebdb1dd339099a4829e5cd52540f1815df18f82d6;
 
-        vm.selectFork(op2Fork);
-        // Start broadcasting transactions
-        vm.startBroadcast();
+//         // proofs[0] = new bytes32[](2); // Initialize the inner array with 2 elements
+//         // proofs[0][
+//         //     0
+//         // ] = 0x4f6ad21c875c44e7f1fe4585f38213bba570c3a0b8dae2a8a8ec347e115323b7;
+//         // proofs[0][
+//         //     1
+//         // ] = 0x92644ec59205c91cd12fe05a6d6bb2d45e89e0213c06eb3382918a7f45498ee9;
 
-        // Deploy a mock ERC20 token for testing
-        MockERC20 rewardTokenOnAnotherChain = new MockERC20{salt: "mocktoken"}(
-            "RewardToken",
-            "RTK"
-        );
-        console.log("RewardToken", address(rewardTokenOnAnotherChain));
+//         address[] memory recipients = new address[](1);
+//         recipients[0] = USER;
 
-        // Deploy the Distributor contract
-        Distributor distributorOnAnotherChain = new Distributor{
-            salt: "distributor"
-        }(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC);
-        console.log("Distributor", address(distributorOnAnotherChain));
+//         uint256[] memory chainIds = new uint256[](1);
+//         chainIds[0] = 901; // Use the current chain ID
 
-        vm.stopBroadcast();
-    }
-}
+//         ClaimData memory claimData = ClaimData({
+//             users: users,
+//             tokens: tokens,
+//             amounts: amounts,
+//             proofs: proofs,
+//             recipients: recipients,
+//             chainIds: chainIds
+//         });
+
+//         // // Claim the rewards
+
+//         vm.startBroadcast(
+//             0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+//         );
+//         console.log("hello");
+//         console.log(
+//             "balance of distributor contract before claim",
+//             rewardToken.balanceOf(address(distributor))
+//         );
+
+//         // Fund the creator with reward tokens
+//         rewardToken.mint(address(distributor), REWARD_AMOUNT);
+
+//         distributor.claim(claimData);
+
+//         console.log("balance of user after claim", rewardToken.balanceOf(USER));
+
+//         vm.stopBroadcast();
+//         // // Validate that the claim was successful
+//         // uint256 userBalance = rewardToken.balanceOf(USER);
+//         // require(
+//         //     userBalance == CLAIM_AMOUNT,
+//         //     "Claim failed: Incorrect user balance"
+//         // );
+//         // console.log("User successfully claimed:", CLAIM_AMOUNT, "tokens");
+
+//         // Stop broadcasting transactions
+
+//         vm.selectFork(op2Fork);
+//         // Start broadcasting transactions
+//         vm.startBroadcast();
+
+//         // Deploy a mock ERC20 token for testing
+//         MockERC20 rewardTokenOnAnotherChain = new MockERC20{salt: "mocktoken"}(
+//             "RewardToken",
+//             "RTK"
+//         );
+//         console.log("RewardToken", address(rewardTokenOnAnotherChain));
+
+//         // Deploy the Distributor contract
+//         Distributor distributorOnAnotherChain = new Distributor{
+//             salt: "distributor"
+//         }(0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC);
+//         console.log("Distributor", address(distributorOnAnotherChain));
+
+//         vm.stopBroadcast();
+//     }
+// }
